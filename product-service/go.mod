@@ -1,4 +1,4 @@
-module ecomm/product-service
+module github.com/nitin-chauhan66/ecommerce-microservices/product-service
 
 go 1.22.5
 

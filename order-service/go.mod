@@ -1,4 +1,4 @@
-module ecomm.order-service
+module github.com/nitin-chauhan66/ecommerce-microservices/order-service
 
 go 1.22.5
 

@@ -1,4 +1,4 @@
-module ecomm/notification-service
+module github.com/nitin-chauhan66/ecommerce-microservices/notification-service
 
 go 1.22.5
 
