@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"log"
+	"time"
 
 	"github.com/IBM/sarama"
 )
@@ -13,10 +14,13 @@ type Order struct {
 	Total      float64  `json:"total"`
 }
 
+const (
+	maxRetries           = 5
+	initialRetryInterval = 5 * time.Second
+)
+
 func main() {
-	// Set up Kafka consumer
-	config := sarama.NewConfig()
-	consumer, err := sarama.NewConsumer([]string{"kafka:9092"}, config)
+	consumer, err := createConsumerWithRetry([]string{"kafka:9092"}, maxRetries, initialRetryInterval)
 	if err != nil {
 		log.Fatalf("Error creating Kafka consumer: %v", err)
 	}
@@ -42,5 +46,27 @@ func main() {
 
 		// In a real scenario, you'd send an actual notification here
 		log.Printf("Sending notification for order %s, total: $%.2f", order.ID, order.Total)
+	}
+}
+
+func createConsumerWithRetry(brokerList []string, maxRetries int, initialRetryInterval time.Duration) (sarama.Consumer, error) {
+	retries := 0
+	retryInterval := initialRetryInterval
+
+	for {
+		var err error
+		consumer, err := sarama.NewConsumer(brokerList, nil)
+		if err == nil {
+			return consumer, nil // Successfully created consumer
+		}
+
+		retries++
+		if retries > maxRetries {
+			return nil, err // Max retries exceeded
+		}
+
+		log.Printf("Error creating Kafka consumer: %v. Retrying in %v...", err, retryInterval)
+		time.Sleep(retryInterval)
+		retryInterval += 5 * time.Second // increase intervla time by 5 secs
 	}
 }
